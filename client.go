@@ -1,12 +1,15 @@
 package hkp
 
 import (
+	"bytes"
 	"context"
+	"crypto/tls"
+	"crypto/x509"
+	_ "embed"
+	"fmt"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"regexp"
-	"strings"
 )
 
 // DefaultKeyserver is the default keyserver used by hkp clients.
@@ -61,31 +64,18 @@ func (cl *Client) GetKey(ctx context.Context, id string) ([]byte, error) {
 	return ioutil.ReadAll(res.Body)
 }
 
-var schemeRE = regexp.MustCompile(`(?i)^(http|hkp)s?://`)
-
-// ParseURL parses a keyserver url, adding the specified params as query
-// values.
-func ParseURL(urlstr string, query ...string) (string, error) {
-	if len(query)%2 != 0 {
-		return "", ErrInvalidParams
+func (cl *Client) GetKeys(ctx context.Context, ids ...string) ([]byte, error) {
+	buf := new(bytes.Buffer)
+	for _, id := range ids {
+		key, err := cl.GetKey(ctx, id)
+		if err != nil {
+			return nil, fmt.Errorf("unable to retrieve key %q: %w", id, err)
+		}
+		if _, err := buf.Write(key); err != nil {
+			return nil, err
+		}
 	}
-	if !strings.Contains(urlstr, "://") {
-		urlstr = "hkps://" + urlstr
-	}
-	if !schemeRE.MatchString(urlstr) {
-		return "", ErrInvalidScheme
-	}
-	u, err := url.Parse(urlstr)
-	if err != nil {
-		return "", err
-	}
-	// set path and query
-	q := url.Values{}
-	for i := 0; i < len(query); i += 2 {
-		q.Set(query[i], query[i+1])
-	}
-	u.Scheme, u.Path, u.RawQuery = "https", "/pks/lookup", q.Encode()
-	return u.String(), nil
+	return buf.Bytes(), nil
 }
 
 // Option is a hkp client option.
@@ -112,3 +102,21 @@ func WithKeyserver(keyserver string) Option {
 		cl.keyserver = keyserver
 	}
 }
+
+// WithSksKeyserversPool is a hkp client option to use the sks-keyservers.net
+// pool.
+func WithSksKeyserversPool() Option {
+	return func(cl *Client) {
+		rootCAs := x509.NewCertPool()
+		_ = rootCAs.AppendCertsFromPEM(skskeyserversCA)
+		cl.keyserver = `https://hkps.pool.sks-keyservers.net`
+		cl.cl.Transport = &http.Transport{
+			TLSClientConfig: &tls.Config{
+				RootCAs: rootCAs,
+			},
+		}
+	}
+}
+
+//go:embed sks-keyservers.netCA.pem
+var skskeyserversCA []byte
