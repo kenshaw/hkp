@@ -22,7 +22,7 @@ func ExampleGetKey() {
 	hash := fmt.Sprintf("%x", md5.Sum(buf))
 	fmt.Println("hash:", hash)
 	// Output:
-	// hash: 3bcdb54d08b620590eede913e1004cc2
+	// hash: 6ba146bef75ec72d419a2395b663039a
 }
 
 // ExampleGetKey_verify shows retrieving the fingerprint from the retrieved key.

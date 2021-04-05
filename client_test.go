@@ -27,8 +27,8 @@ func TestClientGetKey_validKey(t *testing.T) {
 	if err != nil {
 		t.Fatalf("key %q expected no error, got: %v", id, err)
 	}
-	if hash := fmt.Sprintf("%x", md5.Sum(buf)); hash != "3bcdb54d08b620590eede913e1004cc2" {
-		t.Errorf("expected hash of key result %q to be %q, got: %q", id, "3bcdb54d08b620590eede913e1004cc2", hash)
+	if hash := fmt.Sprintf("%x", md5.Sum(buf)); hash != "6ba146bef75ec72d419a2395b663039a" {
+		t.Errorf("expected hash of key result %q to be %q, got: %q", id, "6ba146bef75ec72d419a2395b663039a", hash)
 	}
 }
 
