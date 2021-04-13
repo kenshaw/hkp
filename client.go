@@ -37,6 +37,7 @@ func New(opts ...Option) *Client {
 	return cl
 }
 
+// idRE matches key ids.
 var idRE = regexp.MustCompile(`^[0-9a-fA-F]{40}$`)
 
 // GetKey returns the specified key id from a hkp keyserver.
@@ -70,32 +71,30 @@ func (cl *Client) GetKey(ctx context.Context, id string) ([]byte, error) {
 
 func (cl *Client) GetKeys(ctx context.Context, ids ...string) ([]byte, error) {
 	buf := new(bytes.Buffer)
-
-	armorWriter, err := armor.Encode(buf, openpgp.PublicKeyType, nil)
+	w, err := armor.Encode(buf, openpgp.PublicKeyType, nil)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create armor writer: %w", err)
 	}
-	// in case of panic
-	defer armorWriter.Close()
-
 	for _, id := range ids {
 		key, err := cl.GetKey(ctx, id)
-
+		if err != nil {
+			defer w.Close()
+			return nil, fmt.Errorf("unable to retrieve key %s: %w", id, err)
+		}
 		block, err := armor.Decode(bytes.NewBuffer(key))
 		if err != nil {
-			return nil, fmt.Errorf("unable to decode key: %w", err)
+			defer w.Close()
+			return nil, fmt.Errorf("unable to decode key %s: %w", id, err)
 		}
-
-		if _, err := io.Copy(armorWriter, block.Body); err != nil {
-			return nil, fmt.Errorf("unable to copy armor block: %w", err)
+		if _, err := io.Copy(w, block.Body); err != nil {
+			defer w.Close()
+			return nil, fmt.Errorf("unable to copy block for key %s: %w", id, err)
 		}
 	}
-
-	// need to close to write the final key block
-	if err := armorWriter.Close(); err != nil {
-		return nil, fmt.Errorf("unable to close armor writer: %w", err)
+	// close
+	if err := w.Close(); err != nil {
+		return nil, fmt.Errorf("unable to close writer: %w", err)
 	}
-
 	return buf.Bytes(), nil
 }
 
