@@ -68,5 +68,5 @@ func ExampleWithSksKeyserversPool() {
 	hash := fmt.Sprintf("%x", md5.Sum(buf))
 	fmt.Println("hash:", hash)
 	// Output:
-	// hash: 67b15cedc0dbed6dcf6fcb45ef38f712
+	// hash: 75a1f7a6b2c84c003e5d9b6151ba6891
 }

@@ -55,7 +55,7 @@ func TestClientGetKeys(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
-	if len(ids) <= len(keys) {
-		t.Errorf("expected len(ids)<=len(keys): %d<=%d", len(ids), len(keys))
+	if len(keys) < len(ids) {
+		t.Errorf("expected len(keys)<len(ids): %d<%d", len(keys), len(ids))
 	}
 }

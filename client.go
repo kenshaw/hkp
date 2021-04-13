@@ -7,9 +7,13 @@ import (
 	"crypto/x509"
 	_ "embed"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"regexp"
+
+	"golang.org/x/crypto/openpgp"
+	"golang.org/x/crypto/openpgp/armor"
 )
 
 // DefaultKeyserver is the default keyserver used by hkp clients.
@@ -66,15 +70,32 @@ func (cl *Client) GetKey(ctx context.Context, id string) ([]byte, error) {
 
 func (cl *Client) GetKeys(ctx context.Context, ids ...string) ([]byte, error) {
 	buf := new(bytes.Buffer)
+
+	armorWriter, err := armor.Encode(buf, openpgp.PublicKeyType, nil)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create armor writer: %w", err)
+	}
+	// in case of panic
+	defer armorWriter.Close()
+
 	for _, id := range ids {
 		key, err := cl.GetKey(ctx, id)
+
+		block, err := armor.Decode(bytes.NewBuffer(key))
 		if err != nil {
-			return nil, fmt.Errorf("unable to retrieve key %q: %w", id, err)
+			return nil, fmt.Errorf("unable to decode key: %w", err)
 		}
-		if _, err := buf.Write(key); err != nil {
-			return nil, err
+
+		if _, err := io.Copy(armorWriter, block.Body); err != nil {
+			return nil, fmt.Errorf("unable to copy armor block: %w", err)
 		}
 	}
+
+	// need to close to write the final key block
+	if err := armorWriter.Close(); err != nil {
+		return nil, fmt.Errorf("unable to close armor writer: %w", err)
+	}
+
 	return buf.Bytes(), nil
 }
 
