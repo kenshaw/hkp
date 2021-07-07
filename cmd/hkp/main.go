@@ -20,7 +20,7 @@ func main() {
 }
 
 func run(ctx context.Context, ids ...string) error {
-	cl := hkp.New(hkp.WithSksKeyserversPool())
+	cl := hkp.New()
 	buf, err := cl.GetKeys(ctx, ids...)
 	if err != nil {
 		return err
