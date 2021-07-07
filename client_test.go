@@ -46,7 +46,7 @@ func TestClientGetKeys(t *testing.T) {
 		"108F52B48DB57BB0CC439B2997B01419BD92F80A", // Ruy Adorno <ruyadorno@hotmail.com>
 		"B9E2F5981AA6E0CD28160D9FF13993A75599653C", // Shelley Vohr <shelley.vohr@gmail.com>
 	}
-	cl := New(WithSksKeyserversPool())
+	cl := New()
 	buf, err := cl.GetKeys(context.Background(), ids...)
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)

@@ -45,9 +45,10 @@ func ExampleGetKey_verify() {
 	// fingerprint: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
 }
 
-// ExampleWithSksKeyserversPool shows using the sks-keyservers.net pool.
-func ExampleWithSksKeyserversPool() {
+// ExampleGetKeys shows retrieve retrieving multiple keys.
+func ExampleGetKeys() {
 	ids := []string{
+		// nodejs team keys
 		"4ED778F539E3634C779C87C6D7062848A1AB005C", // Beth Griggs <bgriggs@redhat.com>
 		"94AE36675C464D64BAFA68DD7434390BDBE9B9C5", // Colin Ihrig <cjihrig@gmail.com>
 		"74F12602B6F1C4E913FAA37AD3A89613643B6201", // Danielle Adams <adamzdanielle@gmail.com>
@@ -60,7 +61,7 @@ func ExampleWithSksKeyserversPool() {
 		"108F52B48DB57BB0CC439B2997B01419BD92F80A", // Ruy Adorno <ruyadorno@hotmail.com>
 		"B9E2F5981AA6E0CD28160D9FF13993A75599653C", // Shelley Vohr <shelley.vohr@gmail.com>
 	}
-	cl := hkp.New(hkp.WithSksKeyserversPool())
+	cl := hkp.New()
 	buf, err := cl.GetKeys(context.Background(), ids...)
 	if err != nil {
 		log.Fatal(err)
@@ -68,5 +69,5 @@ func ExampleWithSksKeyserversPool() {
 	hash := fmt.Sprintf("%x", md5.Sum(buf))
 	fmt.Println("hash:", hash)
 	// Output:
-	// hash: 75a1f7a6b2c84c003e5d9b6151ba6891
+	// hash: f2f6645fe14368105bd90ae834a88eaf
 }

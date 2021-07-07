@@ -3,8 +3,6 @@ package hkp
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
-	"crypto/x509"
 	_ "embed"
 	"fmt"
 	"io"
@@ -37,9 +35,6 @@ func New(opts ...Option) *Client {
 	return cl
 }
 
-// idRE matches key ids.
-var idRE = regexp.MustCompile(`^[0-9a-fA-F]{40}$`)
-
 // GetKey returns the specified key id from a hkp keyserver.
 func (cl *Client) GetKey(ctx context.Context, id string) ([]byte, error) {
 	if id == "" || !idRE.MatchString(id) {
@@ -54,21 +49,28 @@ func (cl *Client) GetKey(ctx context.Context, id string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	// build request
 	req, err := http.NewRequest("GET", urlstr, nil)
 	if err != nil {
 		return nil, err
 	}
+	// execute
 	res, err := cl.cl.Do(req.WithContext(ctx))
 	if err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
+	// check status
 	if res.StatusCode != http.StatusOK {
 		return nil, ErrKeyNotFound
 	}
 	return ioutil.ReadAll(res.Body)
 }
 
+// idRE matches key ids.
+var idRE = regexp.MustCompile(`^[0-9a-fA-F]{40}$`)
+
+// GetKeys retrieves the key ids.
 func (cl *Client) GetKeys(ctx context.Context, ids ...string) ([]byte, error) {
 	buf := new(bytes.Buffer)
 	w, err := armor.Encode(buf, openpgp.PublicKeyType, nil)
@@ -122,21 +124,3 @@ func WithKeyserver(keyserver string) Option {
 		cl.keyserver = keyserver
 	}
 }
-
-// WithSksKeyserversPool is a hkp client option to use the sks-keyservers.net
-// pool.
-func WithSksKeyserversPool() Option {
-	return func(cl *Client) {
-		rootCAs := x509.NewCertPool()
-		_ = rootCAs.AppendCertsFromPEM(skskeyserversCA)
-		cl.keyserver = `https://hkps.pool.sks-keyservers.net`
-		cl.cl.Transport = &http.Transport{
-			TLSClientConfig: &tls.Config{
-				RootCAs: rootCAs,
-			},
-		}
-	}
-}
-
-//go:embed sks-keyservers.netCA.pem
-var skskeyserversCA []byte

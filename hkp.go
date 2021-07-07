@@ -8,12 +8,10 @@ import (
 	"strings"
 )
 
-var schemeRE = regexp.MustCompile(`(?i)^(http|hkp)s?://`)
-
 // ParseURL parses a keyserver url, adding the specified params as query
 // values.
-func ParseURL(urlstr string, query ...string) (string, error) {
-	if len(query)%2 != 0 {
+func ParseURL(urlstr string, params ...string) (string, error) {
+	if len(params)%2 != 0 {
 		return "", ErrInvalidParams
 	}
 	if !strings.Contains(urlstr, "://") {
@@ -28,12 +26,15 @@ func ParseURL(urlstr string, query ...string) (string, error) {
 	}
 	// set path and query
 	q := url.Values{}
-	for i := 0; i < len(query); i += 2 {
-		q.Set(query[i], query[i+1])
+	for i := 0; i < len(params); i += 2 {
+		q.Set(params[i], params[i+1])
 	}
 	u.Scheme, u.Path, u.RawQuery = "https", "/pks/lookup", q.Encode()
 	return u.String(), nil
 }
+
+// schemeRE matches allowed keyserver url schemes.
+var schemeRE = regexp.MustCompile(`(?i)^(http|hkp)s?://`)
 
 // GetKey retrieves the specified key id from a hkp keyserver using the
 // provided options.
@@ -46,7 +47,7 @@ func GetKeys(ctx context.Context, ids ...string) ([]byte, error) {
 	return New().GetKeys(ctx, ids...)
 }
 
-// Error is a client error.
+// Error is a package error.
 type Error string
 
 // Error satisfies the error interface.
