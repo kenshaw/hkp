@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"golang.org/x/crypto/openpgp"
+	"github.com/ProtonMail/go-crypto/openpgp"
 )
 
 func TestClientGetKey_keyNotFound(t *testing.T) {
@@ -21,14 +21,14 @@ func TestClientGetKey_keyNotFound(t *testing.T) {
 }
 
 func TestClientGetKey_validKey(t *testing.T) {
-	id := "9DC858229FC7DD38854AE2D88D81803C0EBFCD88"
+	id := "4ED778F539E3634C779C87C6D7062848A1AB005C"
 	cl := New()
 	buf, err := cl.GetKey(context.Background(), id)
 	if err != nil {
 		t.Fatalf("key %q expected no error, got: %v", id, err)
 	}
-	if hash := fmt.Sprintf("%x", md5.Sum(buf)); hash != "6ba146bef75ec72d419a2395b663039a" {
-		t.Errorf("expected hash of key result %q to be %q, got: %q", id, "6ba146bef75ec72d419a2395b663039a", hash)
+	if hash, exp := fmt.Sprintf("%x", md5.Sum(buf)), "e3a8c12e442148bd87a10dfdd8c5932c"; hash != exp {
+		t.Errorf("expected hash of key result %q to be %q, got: %q", id, exp, hash)
 	}
 }
 

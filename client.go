@@ -6,12 +6,11 @@ import (
 	_ "embed"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"regexp"
 
-	"golang.org/x/crypto/openpgp"
-	"golang.org/x/crypto/openpgp/armor"
+	"github.com/ProtonMail/go-crypto/openpgp"
+	"github.com/ProtonMail/go-crypto/openpgp/armor"
 )
 
 // DefaultKeyserver is the default keyserver used by hkp clients.
@@ -64,7 +63,7 @@ func (cl *Client) GetKey(ctx context.Context, id string) ([]byte, error) {
 	if res.StatusCode != http.StatusOK {
 		return nil, ErrKeyNotFound
 	}
-	return ioutil.ReadAll(res.Body)
+	return io.ReadAll(res.Body)
 }
 
 // idRE matches key ids.

@@ -8,13 +8,13 @@ import (
 	"log"
 	"strings"
 
+	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/kenshaw/hkp"
-	"golang.org/x/crypto/openpgp"
 )
 
 // ExampleGetKey shows retrieving a specified key id.
 func ExampleGetKey() {
-	id := "9DC858229FC7DD38854AE2D88D81803C0EBFCD88"
+	id := "4ED778F539E3634C779C87C6D7062848A1AB005C"
 	buf, err := hkp.GetKey(context.Background(), id)
 	if err != nil {
 		log.Fatal(err)
@@ -22,12 +22,12 @@ func ExampleGetKey() {
 	hash := fmt.Sprintf("%x", md5.Sum(buf))
 	fmt.Println("hash:", hash)
 	// Output:
-	// hash: 6ba146bef75ec72d419a2395b663039a
+	// hash: e3a8c12e442148bd87a10dfdd8c5932c
 }
 
 // ExampleGetKey_verify shows retrieving the fingerprint from the retrieved key.
 func ExampleGetKey_verify() {
-	id := "9DC858229FC7DD38854AE2D88D81803C0EBFCD88"
+	id := "4ED778F539E3634C779C87C6D7062848A1AB005C"
 	buf, err := hkp.GetKey(context.Background(), id)
 	if err != nil {
 		log.Fatal(err)
@@ -42,7 +42,7 @@ func ExampleGetKey_verify() {
 	fingerprint := fmt.Sprintf("%x\n", keys[0].PrimaryKey.Fingerprint)
 	fmt.Println("fingerprint:", strings.ToUpper(fingerprint))
 	// Output:
-	// fingerprint: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
+	// fingerprint: 4ED778F539E3634C779C87C6D7062848A1AB005C
 }
 
 // ExampleGetKeys shows retrieve retrieving multiple keys.
